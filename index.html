@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pollution Data</title>
+    <style>
+        /* Global Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color:antiquewhite;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            text-decoration:solid;
+            font-size: 2.5em;
+            color: rgb(143, 222, 143);
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #333;
+            border-bottom: 2px solid #f4f4f4;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Section Layout */
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .table-container {
+            margin-top: 20px;
+        }
+
+        .form-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f4f7fc;
+            border-radius: 8px;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Form Styling */
+        label {
+            font-size: 1.1em;
+            color: #333;
+            margin: 10px 0;
+            display: block;
+        }
+
+        input[type="number"] {
+            padding: 12px 15px 10px 1px;
+            width: 100%;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Prediction Result Styling */
+        #predictionResult {
+            font-size: 1.4em;
+            color: #333;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            input[type="number"] {
+                width: 100%;
+            }
+        }
+    </style> 
+</head>
+<body>
+    <h1>Pollution Data and Prediction</h1>
+    
+    <!-- Pollution Data Section -->
+    <div class="container">
+        <h2>Pollution Data</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>City</th>
+                        <th>AQI</th>
+                        <th>Temperature</th>
+                        <th>Humidity</th>
+                        <th>Wind Speed</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="pollutionData"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- AQI Prediction Section -->
+    <div class="container form-container">
+        <h2>Predict AQI</h2>
+        <form id="predictForm">
+            <label for="temperature">Temperature:</label>
+            <input type="number" id="temperature" required>
+            
+            <label for="humidity">Humidity:</label>
+            <input type="number" id="humidity" required>
+            
+            <label for="wind_speed">Wind Speed:</label>
+            <input type="number" id="wind_speed" required>
+            
+            <button type="submit">Predict</button>
+        </form>
+        <h3 id="predictionResult"></h3>
+    </div>
+
+    <script>
+        // Fetch pollution data
+        fetch('http://localhost:3000/api/pollution')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('pollutionData');
+                data.forEach(item => {
+                    const row = `
+                        <tr>
+                            <td>${item.city}</td>
+                            <td>${item.aqi}</td>
+                            <td>${item.temperature}</td>
+                            <td>${item.humidity}</td>
+                            <td>${item.wind_speed}</td>
+                            <td>${item.timestamp}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching pollution data:', error);
+            });
+
+        // Predict AQI
+        document.getElementById('predictForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const temperature = document.getElementById('temperature').value;
+            const humidity = document.getElementById('humidity').value;
+            const wind_speed = document.getElementById('wind_speed').value;
+
+            fetch('http://localhost:5000/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ temperature, humidity, wind_speed }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('predictionResult').innerText = `Predicted AQI: ${data.predicted_aqi.toFixed(2)}`;
+            })
+            .catch(error => {
+                console.error('Error predicting AQI:', error);
+                document.getElementById('predictionResult').innerText = 'Error occurred. Please try again.';
+            });
+        });
+    </script>
+</body>
+</html>
